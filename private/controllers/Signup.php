@@ -20,7 +20,7 @@ class Signup extends Controller
 
 
                 $user->insert($_POST);
-                $this->redirect('login');
+                $this->redirect('users');
             } else {
                 //errors
                 $errors = $user->errors;

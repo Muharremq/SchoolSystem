@@ -17,7 +17,7 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="#">
             <img src="<?= ROOT ?>/assets/logo.png" style="width:50px">
-            My School
+            <?= Auth::getSchool_name() ?>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -46,7 +46,7 @@
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <?= Auth::user() ?>
+                        <?= Auth::getFirstname() ?>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="<?= ROOT ?>/profile">Profile</a></li>

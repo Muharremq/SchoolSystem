@@ -30,9 +30,12 @@
                                 <button class="btn-sm btn btn-info text-white"> <i class="fa fa-edit"></i> </button>
                             </a>
 
-
                             <a href="<?= ROOT ?>/schools/delete/<?= $row->id ?>">
                                 <button class="btn-sm btn btn-danger"> <i class="fa fa-trash-alt"></i> </button>
+                            </a>
+
+                            <a href="<?= ROOT ?>/switch_school/<?= $row->id ?>">
+                                <button class="btn-sm btn btn-success"> Switch to<i class="fa fa-chevron-right"></i> </button>
                             </a>
                         </td>
                     </tr>
