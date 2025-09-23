@@ -25,30 +25,52 @@
 
 
 
-            <select class="my-2 form-controller" name="gender">
+            <select class="my-2 form-control" name="gender">
                 <option <?= get_select('gender', '') ?> value="">Select a Gender</option>
                 <option <?= get_select('gender', 'male') ?> value="male">Male</option>
                 <option <?= get_select('gender', 'female') ?> value="female">Female</option>
             </select>
-            <select class="my-2 form-controller" name="rank">
-                <option <?= get_select('rank', '') ?> value="">Select a Rank</option>
-                <option <?= get_select('rank', 'student') ?> value="student">Student</option>
-                <option <?= get_select('rank', 'reception') ?> value="reception">Reception</option>
-                <option <?= get_select('rank', 'lecturer') ?> value="lecturer">Lecturer</option>
-                <option <?= get_select('rank', 'admin') ?> value="admin">Admin</option>
-                <?php if (Auth::getRank() == 'super_admin'): ?>
-                    <option <?= get_select('rank', 'super_admin') ?> value="super_admin">Super Admin</option>
-                <?php endif; ?>
-            </select>
 
-            <br>
+            <?php if ($mode == 'students'): ?>
+
+                <input type="hidden" name="rank" value="student">
+
+            <?php else: ?>
+
+                <select class="my-2 form-control" name="rank">
+                    <option <?= get_select('rank', '') ?> value="">Select a Rank</option>
+                    <option <?= get_select('rank', 'student') ?> value="student">Student</option>
+                    <option <?= get_select('rank', 'reception') ?> value="reception">Reception</option>
+                    <option <?= get_select('rank', 'lecturer') ?> value="lecturer">Lecturer</option>
+                    <option <?= get_select('rank', 'admin') ?> value="admin">Admin</option>
+
+                    <?php if (Auth::getRank() == 'super_admin'): ?>
+
+                        <option <?= get_select('rank', 'super_admin') ?> value="super_admin">Super Admin</option>
+
+                    <?php endif; ?>
+
+                </select>
+
+            <?php endif; ?>
+
             <input class="my-2 form-control" value="<?= get_var('password') ?>" type="text" name="password" placeholder="Password">
             <input class="my-2 form-control" value="<?= get_var('password2') ?>" type="text" name="password2" placeholder="Retype Password">
-
             <button class="btn btn-primary float-end">Add User</button>
-            <a href="<?= ROOT ?>/users">
-                <button type="button" class="btn btn-danger text-white">Cancel</button>
-            </a>
+
+            <?php if ($mode == 'students'): ?>
+
+                <a href="<?= ROOT ?>/students">
+                    <button type="button" class="btn btn-danger text-white">Cancel</button>
+                </a>
+
+            <?php else: ?>
+
+                <a href="<?= ROOT ?>/users">
+                    <button type="button" class="btn btn-danger text-white">Cancel</button>
+                </a>
+
+            <?php endif; ?>
 
         </div>
     </form>
