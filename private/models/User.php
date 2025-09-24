@@ -80,7 +80,12 @@ class User extends Model
 
     public function make_user_id($data)
     {
-        $data['user_id'] = random_string(60);
+        $data['user_id'] = strtolower($data['firstname'] . "." . $data['lastname']);
+
+        while ($this->where('user_id', $data['user_id'])) {
+            $data['user_id'] = $data['user_id'] . rand(0, 9);
+        }
+
         return $data;
     }
 
