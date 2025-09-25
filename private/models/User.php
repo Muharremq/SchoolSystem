@@ -24,6 +24,7 @@ class User extends Model
     ];
 
 
+
     public function validate($DATA)
     {
         $this->errors = array();
@@ -88,6 +89,7 @@ class User extends Model
 
         return $data;
     }
+
 
     public function make_school_id($data)
     {

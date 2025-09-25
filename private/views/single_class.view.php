@@ -43,17 +43,6 @@
                 // code...
                 include(views_path('class-tab-lecturers'));
                 break;
-
-            case 'students':
-                // code...
-                include(views_path('class-tab-students'));
-                break;
-
-            case 'tests':
-                // code...
-                include(views_path('class-tab-tests'));
-
-                break;
             case 'lecturer-add':
                 // code...
                 include(views_path('class-tab-lecturers-add'));
@@ -64,10 +53,24 @@
                 include(views_path('class-tab-lecturers-remove'));
 
                 break;
+            case 'students':
+                // code...
+                include(views_path('class-tab-students'));
 
-            case 'students-add':
+                break;
+            case 'student-add':
                 // code...
                 include(views_path('class-tab-students-add'));
+
+                break;
+            case 'student-remove':
+                // code...
+                include(views_path('class-tab-students-remove'));
+
+                break;
+            case 'tests':
+                // code...
+                include(views_path('class-tab-tests'));
 
                 break;
             case 'tests-add':

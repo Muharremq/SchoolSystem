@@ -1,16 +1,20 @@
 <?php
 
+/**
+ * main model
+ */
 class Model extends Database
 {
-
     public $errors = array();
 
     public function __construct()
     {
+        // code...
         if (!property_exists($this, 'table')) {
-            $this->table = strtolower($this::class . "s");
+            $this->table = strtolower($this::class) . "s";
         }
     }
+
 
     public function where($column, $value, $orderby = 'desc')
     {
@@ -21,7 +25,7 @@ class Model extends Database
             'value' => $value
         ]);
 
-        // run functions after select
+        //run functions after select
         if (is_array($data)) {
             if (property_exists($this, 'afterSelect')) {
                 foreach ($this->afterSelect as $func) {
@@ -42,7 +46,7 @@ class Model extends Database
             'value' => $value
         ]);
 
-        // run functions after select
+        //run functions after select
         if (is_array($data)) {
             if (property_exists($this, 'afterSelect')) {
                 foreach ($this->afterSelect as $func) {
@@ -52,7 +56,7 @@ class Model extends Database
         }
 
         if (is_array($data)) {
-            return $data[0];
+            $data = $data[0];
         }
         return $data;
     }
@@ -63,7 +67,7 @@ class Model extends Database
         $query = "select * from $this->table order by id $orderby";
         $data = $this->query($query);
 
-        // run functions after select
+        //run functions after select
         if (is_array($data)) {
             if (property_exists($this, 'afterSelect')) {
                 foreach ($this->afterSelect as $func) {
@@ -75,11 +79,10 @@ class Model extends Database
         return $data;
     }
 
-
     public function insert($data)
     {
 
-        // remove unwanted columns
+        //remove unwanted columns
         if (property_exists($this, 'allowedColumns')) {
             foreach ($data as $key => $column) {
                 if (!in_array($key, $this->allowedColumns)) {
@@ -88,7 +91,7 @@ class Model extends Database
             }
         }
 
-        // run functions before insert
+        //run functions before insert
         if (property_exists($this, 'beforeInsert')) {
             foreach ($this->beforeInsert as $func) {
                 $data = $this->$func($data);
@@ -100,26 +103,30 @@ class Model extends Database
         $values = implode(',:', $keys);
 
         $query = "insert into $this->table ($columns) values (:$values)";
+
         return $this->query($query, $data);
     }
 
     public function update($id, $data)
     {
+
         $str = "";
         foreach ($data as $key => $value) {
+            // code...
             $str .= $key . "=:" . $key . ",";
         }
 
         $str = trim($str, ",");
 
-
         $data['id'] = $id;
-        $query = "update $this->table set  $str where id= :id";
+        $query = "update $this->table set $str where id = :id";
+
         return $this->query($query, $data);
     }
 
     public function delete($id)
     {
+
         $query = "delete from $this->table where id = :id";
         $data['id'] = $id;
         return $this->query($query, $data);

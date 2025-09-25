@@ -40,14 +40,20 @@ class Single_class extends Controller
 
         if ($page_tab == 'lecturers') {
 
-
             //display lecturer
-
             $query = "select * from class_lecturers where class_id = :class_id && disabled = 0";
             $lecturers = $lect->query($query, ['class_id' => $id]);
 
             $data['lecturers'] = $lecturers;
+        } else 
+            if ($page_tab == 'students') {
+            //display student
+            $query = "select * from class_students where class_id = :class_id && disabled = 0";
+            $students = $lect->query($query, ['class_id' => $id]);
+
+            $data['students'] = $students;
         }
+
 
 
         $data['row'] = $row;
@@ -214,6 +220,176 @@ class Single_class extends Controller
                     $this->redirect('single_class/' . $id . '?tab=lecturers');
                 } else {
                     $errors[] = " that lecturer was not found in that class";
+                }
+            }
+        }
+
+
+        $data['row'] = $row;
+        $data['crumbs'] = $crumbs;
+        $data['page_tab'] = $page_tab;
+        $data['results'] = $results;
+        $data['errors'] = $errors;
+
+
+        $this->view('single_class', $data);
+    }
+
+
+
+
+
+
+
+
+    public function studentadd($id = '')
+    {
+        $errors = array();
+        if (!Auth::logged_in()) {
+            $this->redirect('login');
+        }
+
+
+        $classes = new Classes_model();
+
+        $row = $classes->first('class_id', $id);
+
+
+        $crumbs[] = ['Dashboard', '/'];
+        $crumbs[] = ['Classes', 'single_class'];
+
+        if ($row) {
+            $crumbs[] = [$row->class, 'class'];
+        }
+
+
+        $page_tab = 'student-add';
+
+        $lect = new Students_model();
+
+
+        $results = false;
+
+        if (count($_POST) > 0) {
+
+            if (isset($_POST['search'])) {
+
+
+                if (!empty($_POST['name'])) {
+                    //find student
+                    $user = new User();
+                    $name = "%" . trim($_POST['name']) . "%";
+
+                    $query = "SELECT * FROM users WHERE (firstname LIKE :fname OR lastname LIKE :lname) && rank = 'student' LIMIT 10";
+
+                    $results = $user->query($query, ['fname' => $name, 'lname' => $name]);
+                } else {
+                    $errors[] = " pleas type a name to search for ";
+                }
+            } else
+                if (isset($_POST['selected'])) {
+
+                //add student
+                $query = "select id from class_students where user_id = :user_id && class_id = :class_id && disabled = 0 limit 1";
+
+
+                if (!$lect->query($query, [
+                    'user_id' => $_POST['selected'],
+                    'class_id' => $id,
+                ])) {
+
+                    $arr = array();
+                    $arr['user_id'] = $_POST['selected'];
+                    $arr['class_id'] = $id;
+                    $arr['disabled'] = 0;
+                    $arr['date'] = date('Y-m-d H:i:s');
+
+                    $lect->insert($arr);
+
+                    $this->redirect('single_class/' . $id . '?tab=students');
+                } else {
+                    $errors[] = " that student is already belongs to that class";
+                }
+            }
+        }
+
+
+        $data['row'] = $row;
+        $data['crumbs'] = $crumbs;
+        $data['page_tab'] = $page_tab;
+        $data['results'] = $results;
+        $data['errors'] = $errors;
+
+
+        $this->view('single_class', $data);
+    }
+
+
+    public function studentremove($id = '')
+    {
+        $errors = array();
+        if (!Auth::logged_in()) {
+            $this->redirect('login');
+        }
+
+
+        $classes = new Classes_model();
+
+        $row = $classes->first('class_id', $id);
+
+
+        $crumbs[] = ['Dashboard', '/'];
+        $crumbs[] = ['Classes', 'single_class'];
+
+        if ($row) {
+            $crumbs[] = [$row->class, 'class'];
+        }
+
+
+        $page_tab = 'student-remove';
+
+        $lect = new Students_model();
+
+
+        $results = false;
+
+        if (count($_POST) > 0) {
+
+            if (isset($_POST['search'])) {
+
+
+                if (!empty($_POST['name'])) {
+                    //find student
+                    $user = new User();
+                    $name = "%" . trim($_POST['name']) . "%";
+
+                    $query = "SELECT * FROM users WHERE (firstname LIKE :fname OR lastname LIKE :lname) && rank = 'student' LIMIT 10";
+
+                    $results = $user->query($query, ['fname' => $name, 'lname' => $name]);
+                } else {
+                    $errors[] = " pleas type a name to search for ";
+                }
+            } else
+                if (isset($_POST['selected'])) {
+
+                //add student
+                $query = "select id from class_students where user_id = :user_id && class_id = :class_id && disabled = 0 limit 1";
+
+                //removce student
+
+                if ($row = $lect->query($query, [
+                    'user_id' => $_POST['selected'],
+                    'class_id' => $id,
+                ])) {
+
+                    $arr = array();
+                    $arr['disabled'] = 1;
+
+                    $lect->update($row[0]->id,  $arr);
+
+                    $this->redirect('single_class/' . $id . '?tab=students');
+                } else {
+                    $errors[] = " that student was not found in that class";
                 }
             }
         }
