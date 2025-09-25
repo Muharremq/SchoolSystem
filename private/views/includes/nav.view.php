@@ -15,7 +15,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light p-2">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="<?= ROOT ?>">
             <img src="<?= ROOT ?>/assets/logo.png" style="width:50px">
             <?= Auth::getSchool_name() ?>
         </a>
