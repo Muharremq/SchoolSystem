@@ -20,9 +20,14 @@ class Students extends Controller
         $crumbs[] = ['Dashboard', ''];
         $crumbs[] = ['students', 'students'];
 
-        $this->view('students', [
-            'rows' => $data,
-            'crumbs' => $crumbs,
-        ]);
+        if (Auth::access('reception')) {
+
+            $this->view('students', [
+                'rows' => $data,
+                'crumbs' => $crumbs,
+            ]);
+        } else {
+            $this->view('access-denied');
+        }
     }
 }

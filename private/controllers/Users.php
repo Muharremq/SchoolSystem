@@ -19,9 +19,13 @@ class Users extends Controller
         $crumbs[] = ['Dashboard', ''];
         $crumbs[] = ['staff', 'users'];
 
-        $this->view('users', [
-            'rows' => $data,
-            'crumbs' => $crumbs,
-        ]);
+        if (Auth::access('admin')) {
+            $this->view('users', [
+                'rows' => $data,
+                'crumbs' => $crumbs,
+            ]);
+        } else {
+            $this->view('access-denied');
+        }
     }
 }

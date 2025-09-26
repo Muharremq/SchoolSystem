@@ -27,15 +27,27 @@
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="<?= ROOT ?>">DASHBOARD</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= ROOT ?>/schools">SCHOOLS</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= ROOT ?>/users">STAFF</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= ROOT ?>/students">STUDENTS</a>
-                </li>
+                <?php if (Auth::access('super_admin')): ?>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= ROOT ?>/schools">SCHOOLS</a>
+                    </li>
+                <?php endif ?>
+
+                <?php if (Auth::access(rank: 'admin')): ?>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= ROOT ?>/users">STAFF</a>
+                    </li>
+                <?php endif ?>
+
+                <?php if (Auth::access(rank: 'reception')): ?>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= ROOT ?>/students">STUDENTS</a>
+                    </li>
+                <?php endif ?>
+
                 <li class="nav-item">
                     <a class="nav-link" href="<?= ROOT ?>/classes">CLASSES</a>
                 </li>

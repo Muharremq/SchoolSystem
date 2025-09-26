@@ -7,9 +7,13 @@
             <th>Created by</th>
             <th>Date</th>
             <th>
-                <a href="<?= ROOT ?>/classes/add">
-                    <button class="btn btn-sm btn-primary"> <i class="fa fa-plus"></i> Add New</button>
-                </a>
+                <?php if (Auth::access('lecturer')) : ?>
+
+                    <a href="<?= ROOT ?>/classes/add">
+                        <button class="btn btn-sm btn-primary"> <i class="fa fa-plus"></i> Add New</button>
+                    </a>
+                <?php endif; ?>
+
             </th>
         </tr>
         <?php if (isset($rows) && $rows): ?>
