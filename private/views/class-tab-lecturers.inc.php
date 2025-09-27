@@ -32,3 +32,4 @@
             <?php endif; ?>
 
         </div>
+        <br><?php $pager->display() ?>
