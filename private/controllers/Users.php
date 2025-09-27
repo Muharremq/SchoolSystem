@@ -13,16 +13,24 @@ class Users extends Controller
             $this->redirect('login');
         }
 
+
         $user = new User();
+
+        $limit = 10;
+        $pager = new Pager($limit);
+        $offset = $pager->offset;
+
         $school_id = Auth::getSchool_id();
 
-        $query = "select * from users where school_id = :school_id AND rank != 'student' order by id desc";
+
+
+        $query = "select * from users where school_id = :school_id AND rank != 'student' order by id desc limit $limit offset $offset";
         $arr['school_id'] = $school_id;
 
         if (isset($_GET['find'])) {
 
             $find = '%' . $_GET['find'] . '%';
-            $query = "select * from users where school_id = :school_id AND rank != 'student' && (firstname like :find || lastname like :find) order by id desc";
+            $query = "select * from users where school_id = :school_id AND rank != 'student' && (firstname like :find || lastname like :find) order by id desc limit $limit offset $offset";
             $arr['find'] = $find;
         }
 
@@ -35,6 +43,7 @@ class Users extends Controller
             $this->view('users', [
                 'rows' => $data,
                 'crumbs' => $crumbs,
+                'pager' => $pager,
             ]);
         } else {
             $this->view('access-denied');

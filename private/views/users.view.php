@@ -33,6 +33,8 @@
             <h4>No staff member were found!</h4>
         <?php endif; ?>
     </div>
+
+    <?php $pager->display(); ?>
 </div>
 
 
