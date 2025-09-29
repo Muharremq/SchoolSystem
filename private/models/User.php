@@ -14,7 +14,8 @@ class User extends Model
         'password',
         'gender',
         'rank',
-        'date'
+        'date',
+        'image'
     ];
 
     protected $beforeInsert = [
@@ -25,7 +26,7 @@ class User extends Model
 
 
 
-    public function validate($DATA)
+    public function validate($DATA, $id = '')
     {
         $this->errors = array();
 
@@ -43,9 +44,28 @@ class User extends Model
             $this->errors['email'] = "Email is not valid";
         }
 
-        //check if email exists 
-        if ($this->where('email', $DATA['email'])) {
-            $this->errors['email'] = "That email is already used";
+        //check if email exists
+        if (trim($id) == "") {
+            if ($this->where('email', $DATA['email'])) {
+                $this->errors['email'] = "That email is already in use";
+            }
+        } else {
+            if ($this->query("select email from $this->table where email = :email && user_id != :id", ['email' => $DATA['email'], 'id' => $id])) {
+                $this->errors['email'] = "That email is already in use";
+            }
+        }
+
+        //check for password
+        if (isset($DATA['password'])) {
+
+            if (empty($DATA['password']) || $DATA['password'] !== $DATA['password2']) {
+                $this->errors['password'] = "Passwords do not match";
+            }
+
+            //check for password length
+            if (strlen($DATA['password']) < 8) {
+                $this->errors['password'] = "Password must be at least 8 characters long";
+            }
         }
 
         //check for Gender
@@ -58,16 +78,6 @@ class User extends Model
         $ranks = ['student', 'reception', 'lecturer', 'admin', 'super_admin'];
         if (empty($DATA['rank']) || !in_array($DATA['rank'], $ranks)) {
             $this->errors['rank'] = "Rank is not valid";
-        }
-
-        //check for password
-        if (strlen($DATA['password']) < 8) {
-            $this->errors['password'] = "Passwords must be at least 8 characters long";
-        }
-
-        //check for password length
-        if (empty($DATA['password']) || $DATA['password'] != $DATA['password2']) {
-            $this->errors['password'] = "The passwords do not match";
         }
 
         if (count($this->errors) == 0) {

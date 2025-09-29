@@ -1,19 +1,30 @@
-<?php $this->view('includes/header'); ?>
-<?php $this->view('includes/nav'); ?>
-
-
+<?php $this->view('includes/header') ?>
+<?php $this->view('includes/nav') ?>
 
 <div class="container-fluid p-4 shadow mx-auto" style="max-width: 1000px;">
-    <?php $this->view('includes/crumbs', ['crumbs' => $crumbs]); ?>
+    <?php $this->view('includes/crumbs', ['crumbs' => $crumbs]) ?>
 
     <?php if ($row): ?>
 
-        <?php $image = get_image($row->image, $row->gender); ?>
+        <?php
+        $image = get_image($row->image, $row->gender);
+        ?>
 
         <div class="row">
-            <div class="col-sm-4 col-md-3">asdasd
-                <img src="<?= $image  ?>" class="border border-primary d-block mx-auto rounded-circle " style="width:150px">
+            <div class="col-sm-4 col-md-3">
+                <img src="<?= $image ?>" class="border border-primary d-block mx-auto rounded-circle " style="width:150px;">
                 <h3 class="text-center"><?= esc($row->firstname) ?> <?= esc($row->lastname) ?></h3>
+                <br>
+                <?php if (Auth::access('reception') || Auth::i_own_content($row)): ?>
+                    <div class="text-center">
+                        <a href="<?= ROOT ?>/profile/edit/<?= $row->user_id ?>">
+                            <button class="btn-sm btn btn-success">Edit</button>
+                        </a>
+                        <a href="<?= ROOT ?>/profile/delete/<?= $row->user_id ?>">
+                            <button class="btn-sm btn btn-danger">Delete</button>
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
             <div class="col-sm-8 col-md-9 bg-light p-2">
                 <table class="table table-hover table-striped table-bordered">
@@ -41,26 +52,25 @@
                         <th>Date Created:</th>
                         <td><?= get_date($row->date) ?></td>
                     </tr>
+
                 </table>
             </div>
         </div>
-        <hr>
+        <br>
         <div class="container-fluid">
             <ul class="nav nav-tabs">
                 <li class="nav-item">
-                    <a class="nav-link <?= $page_tab == 'info' ? 'active' : ''; ?>" aria-current="page" href="<?= ROOT ?>/profile/<?= $row->user_id ?> ">Basic Info</a>
+                    <a class="nav-link <?= $page_tab == 'info' ? 'active' : ''; ?>" href="<?= ROOT ?>/profile/<?= $row->user_id ?>">Basic Info</a>
                 </li>
-                <?php if (Auth::access('lecturer') || Auth::i_own_content($row)) : ?>
-
+                <?php if (Auth::access('lecturer') || Auth::i_own_content($row)): ?>
                     <li class="nav-item">
-                        <a class="nav-link <?= $page_tab == 'classes' ? 'active' : ''; ?>" href="<?= ROOT ?>/profile/<?= $row->user_id ?>?tab=classes ">My Classes</a>
+                        <a class="nav-link <?= $page_tab == 'classes' ? 'active' : ''; ?>" href="<?= ROOT ?>/profile/<?= $row->user_id ?>?tab=classes">My Classes</a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link <?= $page_tab == 'tests' ? 'active' : ''; ?>" href="<?= ROOT ?>/profile/<?= $row->user_id ?>?tab=tests">Tests</a>
                     </li>
                 <?php endif; ?>
-
             </ul>
 
             <?php
@@ -75,9 +85,9 @@
                 case 'classes':
                     // code...
                     if (Auth::access('lecturer') || Auth::i_own_content($row)) {
-                        include(views_path(view: 'profile-tab-classes'));
+                        include(views_path('profile-tab-classes'));
                     } else {
-                        include(views_path(view: 'access-denied'));
+                        include(views_path('access-denied'));
                     }
                     break;
 
@@ -93,8 +103,6 @@
 
             ?>
 
-
-
         </div>
     <?php else: ?>
         <center>
@@ -104,4 +112,4 @@
 
 </div>
 
-<?php $this->view('includes/footer'); ?>
+<?php $this->view('includes/footer') ?>
