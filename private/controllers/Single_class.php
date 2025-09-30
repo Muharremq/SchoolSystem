@@ -55,6 +55,13 @@ class Single_class extends Controller
             $students = $lect->query($query, ['class_id' => $id]);
 
             $data['students'] = $students;
+        } else 
+            if ($page_tab == 'tests') {
+            //display tests
+            $query = "select * from tests where class_id = :class_id order by id desc limit $limit offset $offset";
+            $tests = $lect->query($query, ['class_id' => $id]);
+
+            $data['tests'] = $tests;
         }
 
 
@@ -435,6 +442,171 @@ class Single_class extends Controller
         $data['results'] = $results;
         $data['errors'] = $errors;
 
+
+        $this->view('single_class', $data);
+    }
+
+
+
+    public function testadd($id = '')
+    {
+        $errors = array();
+        if (!Auth::logged_in()) {
+            $this->redirect('login');
+        }
+
+
+        $classes = new Classes_model();
+        $row = $classes->first('class_id', $id);
+
+        $crumbs[] = ['Dashboard', ''];
+        $crumbs[] = ['classes', 'classes'];
+
+        if ($row) {
+            $crumbs[] = [$row->class, ''];
+        }
+
+        $page_tab = 'test-add';
+        $test_class = new Tests_model();
+
+        $results = false;
+
+        if (count($_POST) > 0) {
+
+            if (isset($_POST['test'])) {
+
+
+                $arr = array();
+                $arr['test'] = $_POST['test'];
+                $arr['description'] = $_POST['description'];
+                $arr['class_id'] = $id;
+                $arr['disabled'] = 0;
+                $arr['date'] = date('Y-m-d H:i:s');
+
+                $test_class->insert($arr);
+
+                $this->redirect('single_class/' . $id . '?tab=tests');
+            }
+        }
+
+
+        $data['row'] = $row;
+        $data['crumbs'] = $crumbs;
+        $data['page_tab'] = $page_tab;
+        $data['results'] = $results;
+        $data['errors'] = $errors;
+
+
+        $this->view('single_class', $data);
+    }
+
+
+
+
+    public function testedit($id = '', $test_id = '')
+    {
+        $errors = array();
+        if (!Auth::logged_in()) {
+            $this->redirect('login');
+        }
+
+        $classes = new Classes_model();
+        $tests = new Tests_model();
+
+        // Get the class data
+        $row = $classes->first('class_id', $id);
+
+        // Get the specific test data using test_id
+        $test_row = $tests->first('test_id', $test_id);
+
+        $crumbs[] = ['Dashboard', ''];
+        $crumbs[] = ['classes', 'classes'];
+
+        if ($row) {
+            $crumbs[] = [$row->class, ''];
+        }
+
+        $page_tab = 'test-edit';
+        $test_class = new Tests_model();
+
+
+        $results = false;
+
+        if (count($_POST) > 0) {
+
+
+            if (isset($_POST['test'])) {
+                $arr = array();
+                $arr['test']     = $_POST['test'];
+                $arr['description']     = $_POST['description'];
+                $arr['disabled']     = $_POST['disabled'];
+
+                // Update with WHERE clause for specific test
+                $test_class->update($test_row->id, $arr);
+
+                $this->redirect('single_class/' . $id . '?tab=tests');
+            }
+        }
+
+        $data['row'] = $row;
+        $data['test_row'] = $test_row;  // This should be the test data, not class data
+        $data['crumbs'] = $crumbs;
+        $data['page_tab'] = $page_tab;
+        $data['results'] = $results;
+        $data['errors'] = $errors;
+
+        $this->view('single_class', $data);
+    }
+
+
+
+    public function testdelete($id = '', $test_id = '')
+    {
+        $errors = array();
+        if (!Auth::logged_in()) {
+            $this->redirect('login');
+        }
+
+        $classes = new Classes_model();
+        $tests = new Tests_model();
+
+        // Get the class data
+        $row = $classes->first('class_id', $id);
+
+        // Get the specific test data using test_id
+        $test_row = $tests->first('test_id', $test_id);
+
+        $crumbs[] = ['Dashboard', ''];
+        $crumbs[] = ['classes', 'classes'];
+
+        if ($row) {
+            $crumbs[] = [$row->class, ''];
+        }
+
+        $page_tab = 'test-delete';
+        $test_class = new Tests_model();
+
+
+        $results = false;
+
+        if (count($_POST) > 0) {
+
+
+            if (isset($_POST['test'])) {
+
+                // Update with WHERE clause for specific test
+                $test_class->delete($test_row->id);
+
+                $this->redirect('single_class/' . $id . '?tab=tests');
+            }
+        }
+
+        $data['row'] = $row;
+        $data['test_row'] = $test_row;  // This should be the test data, not class data
+        $data['crumbs'] = $crumbs;
+        $data['page_tab'] = $page_tab;
+        $data['results'] = $results;
+        $data['errors'] = $errors;
 
         $this->view('single_class', $data);
     }
