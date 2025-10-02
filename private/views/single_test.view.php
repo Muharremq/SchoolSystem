@@ -39,11 +39,25 @@
                 // code...
                 include(views_path('test-tab-view'));
                 break;
-            case 'add':
+
+            case 'add-question':
                 // code...
-                include(views_path('test-tab-add'));
+                include(views_path('test-tab-add-question'));
 
                 break;
+
+            case 'edit-question':
+                // code...
+                include(views_path('test-tab-edit-question'));
+
+                break;
+
+            case 'delete-question':
+                // code...
+                include(views_path('test-tab-delete-question'));
+
+                break;
+
             case 'edit':
                 // code...
                 include(views_path('test-tab-edit'));
