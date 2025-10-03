@@ -16,7 +16,7 @@
                 <?php if ($row && is_object($row)): ?>
                     <tr>
                         <td>
-                            <a href="<?= ROOT ?>/single_class/<?= $row->class_id ?>">
+                            <a href="<?= ROOT ?>/single_class/<?= $row->class_id ?>?tab=students">
                                 <button class="btn btn-sm btn-primary"><i class="fa fa-chevron-right"></i></button>
                             </a>
                         </td>

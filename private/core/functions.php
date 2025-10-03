@@ -99,3 +99,69 @@ function upload_image($FILES)
 
     return false;
 }
+
+
+function has_taken_test($test_id)
+{
+
+    return "No";
+}
+
+function can_take_test($my_test_id)
+{
+    $class = new Classes_model();
+    $mytable = "class_students";
+    if (Auth::getRank() != "student") {
+        return false;
+    }
+
+    $query = "select * from $mytable where user_id = :user_id && disabled = 0";
+    $data['stud_classes'] = $class->query($query, ['user_id' => Auth::getUser_id()]);
+
+    $data['student_classes'] = array();
+    if ($data['stud_classes']) {
+        foreach ($data['stud_classes'] as $key => $arow) {
+            // Fix: Check if class exists before adding to array
+            $class_result = $class->first('class_id', $arow->class_id);
+            if ($class_result) {
+                $data['student_classes'][] = $class_result;
+            }
+        }
+    }
+
+    // Fix: Check if we have any valid classes before proceeding
+    if (empty($data['student_classes'])) {
+        return false;
+    }
+
+    //collect class id's
+    $class_ids = [];
+    foreach ($data['student_classes'] as $key => $class_row) {
+        // Fix: Additional safety check
+        if (isset($class_row->class_id)) {
+            $class_ids[] = $class_row->class_id;
+        }
+    }
+
+    // Fix: Check if we have any class IDs before querying
+    if (empty($class_ids)) {
+        return false;
+    }
+
+    $id_str = "'" . implode("','", $class_ids) . "'";
+    $query = "select * from tests where class_id in ($id_str)";
+
+    $tests_model = new Tests_model();
+    $tests = $tests_model->query($query);
+
+    // Fix: Check if tests exist before using array_column
+    if (!$tests || !is_array($tests)) {
+        return false;
+    }
+
+    $my_tests = array_column($tests, 'test_id');
+    if (in_array($my_test_id, $my_tests)) {
+        return true;
+    }
+    return false;
+}

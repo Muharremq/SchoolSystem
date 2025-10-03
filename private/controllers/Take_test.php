@@ -1,16 +1,16 @@
 <?php
 
 /**
- * single test controller
+ * Take test controller
  */
 
-class Single_test extends Controller
+class Take_test extends Controller
 {
 
     public function index($id = '')
     {
         $errors = array();
-        if (!Auth::access('lecturer')) {
+        if (!Auth::access('student')) {
             $this->redirect('access_denied');
         }
 
@@ -18,22 +18,16 @@ class Single_test extends Controller
         $row = $tests->first('test_id', $id);
 
         $crumbs[] = ['Dashboard', '/'];
-        $crumbs[] = ['Tests', 'tests'];
+        $crumbs[] = ['tests', 'tests'];
 
         if ($row) {
             $crumbs[] = [$row->test, ''];
-        }
 
-        //disable
-        if (isset($_GET['disable'])) {
+            if (!$row->disabled) {
 
-            if ($row->disabled) {
-                $disable = 0;
-            } else {
-                $disable = 1;
+                $query = "update tests set editable = 0 where id = :id limit 1";
+                $tests->query($query, ['id' => $row->id]);
             }
-            $query = "update tests set disabled = $disable where id = :id limit 1";
-            $tests->query($query, ['id' => $row->id]);
         }
 
         $page_tab = 'view';
@@ -44,28 +38,24 @@ class Single_test extends Controller
 
         $results = false;
         $quest = new Questions_model();
-
         $questions = $quest->where('test_id', $id);
 
-        // Fix: Ensure $questions is an array before counting
-        if (!is_array($questions)) {
-            $questions = [];
-        }
-
-        $total_questions = count($questions);
+        $total_questions = is_array($questions) ? count($questions) : 0;
 
 
-        $data['row'] = $row;
-        $data['crumbs'] = $crumbs;
-        $data['page_tab'] = $page_tab;
-        $data['questions'] = $questions;
-        $data['total_questions'] = $total_questions;
-        $data['results'] = $results;
-        $data['errors'] = $errors;
-        $data['pager'] = $pager;
+        $data['row']         = $row;
+        $data['crumbs']     = $crumbs;
+        $data['page_tab']     = $page_tab;
+        $data['questions']     = $questions;
+        $data['total_questions']     = $total_questions;
+        $data['results']     = $results;
+        $data['errors']     = $errors;
+        $data['pager']         = $pager;
 
 
-        $this->view('single_test', $data);
+
+
+        $this->view('take-test', $data);
     }
 
 
@@ -185,11 +175,7 @@ class Single_test extends Controller
 
         if (count($_POST) > 0) {
 
-            if (!$row->editable) {
-                $errors[] = "Editing for this test question is disabled";
-            }
-
-            if ($quest->validate($_POST) && count($errors) == 0) {
+            if ($quest->validate($_POST)) {
 
                 //check for files
                 if ($myimage = upload_image($_FILES)) {
@@ -227,7 +213,7 @@ class Single_test extends Controller
                 $this->redirect('single_test/editquestion/' . $id . '/' . $quest_id . $type);
             } else {
                 //errors
-                $errors = array_merge($errors, $quest->errors);
+                $errors = $quest->errors;
             }
         }
 
@@ -271,11 +257,7 @@ class Single_test extends Controller
         $quest = new Questions_model();
         $question = $quest->first('id', $quest_id);
 
-        if (!$row->editable) {
-            $errors[] = "This test question can not be deleted";
-        }
-
-        if (count($_POST) > 0 && count($errors) == 0) {
+        if (count($_POST) > 0) {
 
             if (Auth::access('lecturer')) {
 

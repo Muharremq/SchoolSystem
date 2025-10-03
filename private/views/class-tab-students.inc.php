@@ -5,17 +5,20 @@
                     <input type="text" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon1" />
                 </div>
             </form>
+            <?php if (Auth::access('lecturer')) : ?>
 
-            <div>
-                <a href="<?= ROOT ?>/single_class/studentadd/<?= $row->class_id ?>?select=true">
-                    <button class=" btn btn-sm btn-primary"> <i class="fa fa-plus"></i> Add New</button>
-                </a>
+                <div>
+                    <a href="<?= ROOT ?>/single_class/studentadd/<?= $row->class_id ?>?select=true">
+                        <button class=" btn btn-sm btn-primary"> <i class="fa fa-plus"></i> Add New</button>
+                    </a>
 
-                <a href="<?= ROOT ?>/single_class/studentremove/<?= $row->class_id ?>?select=true">
-                    <button class=" btn btn-sm btn-primary"> <i class="fa fa-minus"></i> Remove</button>
-                </a>
+                    <a href="<?= ROOT ?>/single_class/studentremove/<?= $row->class_id ?>?select=true">
+                        <button class=" btn btn-sm btn-primary"> <i class="fa fa-minus"></i> Remove</button>
+                    </a>
 
-            </div>
+                </div>
+            <?php endif; ?>
+
         </nav>
         <div class="card-group justify-content-center">
             <?php if (is_array($students)) : ?>

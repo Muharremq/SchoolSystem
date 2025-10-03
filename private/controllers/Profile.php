@@ -40,9 +40,51 @@ class Profile extends Controller
             $data['student_classes'] = array();
             if ($data['stud_classes']) {
                 foreach ($data['stud_classes'] as $key => $arow) {
-                    // code...
-                    $data['student_classes'][] = $class->first('class_id', $arow->class_id);
+                    // Fix: Check if class exists before adding to array
+                    $class_result = $class->first('class_id', $arow->class_id);
+                    if ($class_result) {
+                        $data['student_classes'][] = $class_result;
+                    }
                 }
+            }
+        } else if ($data['page_tab'] == 'tests' && $row) {
+            $class = new Classes_model();
+
+            $disabled = "disabled = 0 &&";
+            $mytable = "class_students";
+            if ($row->rank == "lecturer") {
+                $mytable = "class_lecturers";
+                $disabled = "";
+            }
+
+            $query = "select * from $mytable where user_id = :user_id && disabled = 0";
+            $data['stud_classes'] = $class->query($query, ['user_id' => $id]);
+
+            $data['student_classes'] = array();
+            $class_ids = array();
+
+            if ($data['stud_classes']) {
+                foreach ($data['stud_classes'] as $key => $arow) {
+                    // Fix: Check if class exists before adding to array
+                    $class_result = $class->first('class_id', $arow->class_id);
+                    if ($class_result) {
+                        $data['student_classes'][] = $class_result;
+                        $class_ids[] = $class_result->class_id;
+                    }
+                }
+            }
+
+            // Only query tests if there are valid classes
+            if (!empty($class_ids)) {
+                $id_str = "'" . implode("','", $class_ids) . "'";
+                $query = "select * from tests where $disabled class_id in ($id_str)";
+
+                $tests_model = new Tests_model();
+                $tests = $tests_model->query($query);
+
+                $data['test_rows'] = $tests;
+            } else {
+                $data['test_rows'] = array();
             }
         }
 

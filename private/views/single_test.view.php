@@ -22,14 +22,30 @@
                         </a>
                     </td>
                 </tr>
+
                 <?php $active = $row->disabled ? "No" : "Yes"; ?>
                 <tr>
-                    <td><b>Active:</b> <?= $active ?></td>
+                    <td>
+                        <b>Published:</b> <?= $active ?><br>
+
+                        <?php
+
+                        $btntext = 'Unpublish';
+                        $btncolor = 'btn-primary';
+                        if ($row->disabled) {
+                            $btntext = 'Publish';
+                            $btncolor = 'btn-danger';
+                        }
+                        ?>
+                        <a href="<?= ROOT ?>/single_test/<?= $row->test_id ?>?disable=true">
+                            <button class="btn btn-sm <?= $btncolor ?>"><?= $btntext ?></button>
+                        </a>
+                    </td>
+
                     <td colspan="5"><b>Test Description:</b><br><?= esc($row->description) ?></td>
                 </tr>
             </table>
         </div>
-
 
 
         <?php
@@ -43,30 +59,26 @@
             case 'add-question':
                 // code...
                 include(views_path('test-tab-add-question'));
-
                 break;
 
             case 'edit-question':
                 // code...
                 include(views_path('test-tab-edit-question'));
-
                 break;
 
             case 'delete-question':
                 // code...
                 include(views_path('test-tab-delete-question'));
-
                 break;
 
             case 'edit':
                 // code...
                 include(views_path('test-tab-edit'));
-
                 break;
+
             case 'delete':
                 // code...
                 include(views_path('test-tab-delete'));
-
                 break;
 
             default:

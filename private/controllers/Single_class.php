@@ -12,8 +12,8 @@ class Single_class extends Controller
         //   code....
 
         $errors = array();
-        if (!Auth::logged_in()) {
-            $this->redirect('login');
+        if (!Auth::access('student')) {
+            $this->redirect('access_denied');
         }
 
 

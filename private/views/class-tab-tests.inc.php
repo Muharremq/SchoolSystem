@@ -37,6 +37,7 @@
 					<td><?= $row->test ?></td>
 					<td><?= $row->user->firstname ?> <?= $row->user->lastname ?></td>
 					<td><?= $active ?></td>
+					<td><?= has_taken_test($row->test_id) ?></td>
 					<td><?= get_date($row->date) ?></td>
 
 					<td>

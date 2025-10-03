@@ -6,16 +6,18 @@
                 </div>
             </form>
 
-            <div>
-                <a href="<?= ROOT ?>/single_class/lectureradd/<?= $row->class_id ?>?select=true">
-                    <button class=" btn btn-sm btn-primary"> <i class="fa fa-plus"></i> Add New</button>
-                </a>
+            <?php if (Auth::access('lecturer')) : ?>
+                <div>
+                    <a href="<?= ROOT ?>/single_class/lectureradd/<?= $row->class_id ?>?select=true">
+                        <button class=" btn btn-sm btn-primary"> <i class="fa fa-plus"></i> Add New</button>
+                    </a>
 
-                <a href="<?= ROOT ?>/single_class/lecturerremove/<?= $row->class_id ?>?select=true">
-                    <button class=" btn btn-sm btn-primary"> <i class="fa fa-minus"></i> Remove</button>
-                </a>
+                    <a href="<?= ROOT ?>/single_class/lecturerremove/<?= $row->class_id ?>?select=true">
+                        <button class=" btn btn-sm btn-primary"> <i class="fa fa-minus"></i> Remove</button>
+                    </a>
+                </div>
+            <?php endif; ?>
 
-            </div>
         </nav>
         <div class="card-group justify-content-center">
             <?php if (is_array($lecturers)) : ?>
