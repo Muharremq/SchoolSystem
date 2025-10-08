@@ -100,7 +100,6 @@ function upload_image($FILES)
     return false;
 }
 
-
 function has_taken_test($test_id)
 {
 
@@ -121,29 +120,21 @@ function can_take_test($my_test_id)
     $data['student_classes'] = array();
     if ($data['stud_classes']) {
         foreach ($data['stud_classes'] as $key => $arow) {
-            // Fix: Check if class exists before adding to array
-            $class_result = $class->first('class_id', $arow->class_id);
-            if ($class_result) {
-                $data['student_classes'][] = $class_result;
+            // Add null check here
+            $class_record = $class->first('class_id', $arow->class_id);
+            if ($class_record !== false && $class_record !== null) {
+                $data['student_classes'][] = $class_record;
             }
         }
-    }
-
-    // Fix: Check if we have any valid classes before proceeding
-    if (empty($data['student_classes'])) {
-        return false;
     }
 
     //collect class id's
     $class_ids = [];
     foreach ($data['student_classes'] as $key => $class_row) {
-        // Fix: Additional safety check
-        if (isset($class_row->class_id)) {
-            $class_ids[] = $class_row->class_id;
-        }
+        $class_ids[] = $class_row->class_id;
     }
 
-    // Fix: Check if we have any class IDs before querying
+    // Add check for empty class_ids
     if (empty($class_ids)) {
         return false;
     }
@@ -154,8 +145,8 @@ function can_take_test($my_test_id)
     $tests_model = new Tests_model();
     $tests = $tests_model->query($query);
 
-    // Fix: Check if tests exist before using array_column
-    if (!$tests || !is_array($tests)) {
+    // Add null check for tests
+    if (empty($tests)) {
         return false;
     }
 
@@ -164,4 +155,156 @@ function can_take_test($my_test_id)
         return true;
     }
     return false;
+}
+
+
+
+function get_answer($saved_answers, $id)
+{
+
+    if (!empty($saved_answers)) {
+
+        foreach ($saved_answers as $row) {
+            // code...
+            if ($id == $row->question_id) {
+                return $row->answer;
+            }
+        }
+    }
+
+    return '';
+}
+
+function get_mark($saved_answers, $id)
+{
+
+    if (!empty($saved_answers)) {
+
+        foreach ($saved_answers as $row) {
+            // code...
+            if ($id == $row->question_id) {
+                return $row->answer_mark;
+            }
+        }
+    }
+
+    return '';
+}
+
+function get_answer_mark($saved_answers, $id)
+{
+
+    if (!empty($saved_answers)) {
+
+        foreach ($saved_answers as $row) {
+            // code...
+            if ($id == $row->question_id) {
+                return $row->answer_mark;
+            }
+        }
+    }
+
+    return '';
+}
+
+
+function get_answer_percentage($test_id, $user_id)
+{
+
+    $quest = new Questions_model();
+    $questions = $quest->query('select * from test_questions where test_id = :test_id', ['test_id' => $test_id]);
+
+    $answers = new Answers_model();
+    $query = "select question_id,answer from answers where user_id = :user_id && test_id = :test_id ";
+    $saved_answers = $answers->query($query, [
+        'user_id' => $user_id,
+        'test_id' => $test_id,
+    ]);
+
+    $total_answer_count = 0;
+    if (!empty($questions)) {
+        foreach ($questions as $quest) {
+            // code...
+            $answer = get_answer($saved_answers, $quest->id);
+            if (trim($answer) != "") {
+                $total_answer_count++;
+            }
+        }
+    }
+
+    if ($total_answer_count > 0) {
+        $total_questions = count($questions);
+
+        return ($total_answer_count / $total_questions) * 100;
+    }
+
+    return 0;
+}
+
+
+function get_mark_percentage($test_id, $user_id)
+{
+
+    $quest = new Questions_model();
+    $questions = $quest->query('select * from test_questions where test_id = :test_id', ['test_id' => $test_id]);
+
+    $answers = new Answers_model();
+    $query = "select question_id,answer,answer_mark from answers where user_id = :user_id && test_id = :test_id ";
+    $saved_answers = $answers->query($query, [
+        'user_id' => $user_id,
+        'test_id' => $test_id,
+    ]);
+
+    $total_answer_count = 0;
+    if (!empty($questions)) {
+        foreach ($questions as $quest) {
+            // code...
+            $answer = get_mark($saved_answers, $quest->id);
+            if (trim($answer) > 0) {
+                $total_answer_count++;
+            }
+        }
+    }
+
+    if ($total_answer_count > 0) {
+        $total_questions = count($questions);
+
+        return ($total_answer_count / $total_questions) * 100;
+    }
+
+    return 0;
+}
+
+
+function get_score_percentage($test_id, $user_id)
+{
+
+    $quest = new Questions_model();
+    $questions = $quest->query('select * from test_questions where test_id = :test_id', ['test_id' => $test_id]);
+
+    $answers = new Answers_model();
+    $query = "select question_id,answer,answer_mark from answers where user_id = :user_id && test_id = :test_id ";
+    $saved_answers = $answers->query($query, [
+        'user_id' => $user_id,
+        'test_id' => $test_id,
+    ]);
+
+    $total_answer_count = 0;
+    if (!empty($questions)) {
+        foreach ($questions as $quest) {
+            // code...
+            $answer = get_mark($saved_answers, $quest->id);
+            if (trim($answer) == 1) {
+                $total_answer_count++;
+            }
+        }
+    }
+
+    if ($total_answer_count > 0) {
+        $total_questions = count($questions);
+
+        return ($total_answer_count / $total_questions) * 100;
+    }
+
+    return 0;
 }

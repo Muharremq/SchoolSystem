@@ -1,16 +1,16 @@
 <?php
 
 /**
- * take test controller
+ * make test controller
  */
-class Take_test extends Controller
+class Mark_test extends Controller
 {
 
-    public function index($id = '')
+    public function index($id = '', $user_id = '')
     {
         // code...
         $errors = array();
-        if (!Auth::access('student')) {
+        if (!Auth::access('lecturer')) {
             $this->redirect('access_denied');
         }
 
@@ -18,9 +18,9 @@ class Take_test extends Controller
         $row = $tests->first('test_id', $id);
 
         $answers = new Answers_model();
-        $query = "select question_id,answer from answers where user_id = :user_id && test_id = :test_id ";
+        $query = "select question_id,answer,answer_mark from answers where user_id = :user_id && test_id = :test_id ";
         $saved_answers = $answers->query($query, [
-            'user_id' => Auth::getUser_id(),
+            'user_id' => $user_id,
             'test_id' => $id,
         ]);
 
@@ -42,30 +42,16 @@ class Take_test extends Controller
 
         //if something was posted
         if (count($_POST) > 0) {
-            //save answers to database
-            $arr1['user_id'] = Auth::getUser_id();
-            $arr1['test_id'] = $id;
-
-            $check = $db->query("select id from answered_tests where user_id = :user_id && test_id = :test_id limit 1", $arr1);
-
-            if (!$check) {
-
-                $arr1['date'] = date("Y-m-d H:i:s");
-
-                $query = "insert into answered_tests (user_id,test_id,date) values (:user_id,:test_id,:date)";
-                $db->query($query, $arr1);
-            }
 
             foreach ($_POST as $key => $value) {
                 // code...
                 if (is_numeric($key)) {
 
                     //save
-                    $arr['user_id'] = Auth::getUser_id();
+                    $arr['user_id'] = $user_id;
                     $arr['question_id'] = $key;
-                    $arr['date'] = date("Y-m-d H:i:s");
                     $arr['test_id'] = $id;
-                    $arr['answer'] = trim($value);
+                    $arr['answer_mark'] = trim($value);
 
                     //check if answer already exists
                     $query = "select id from answers where user_id = :user_id && test_id = :test_id && question_id = :question_id limit 1";
@@ -75,14 +61,12 @@ class Take_test extends Controller
                         'question_id' => $arr['question_id'],
                     ]);
 
-                    if (!$check) {
-                        $answers->insert($arr);
-                    } else {
+                    if ($check) {
+
                         $answer_id = $check[0]->id;
 
                         unset($arr['user_id']);
                         unset($arr['question_id']);
-                        unset($arr['date']);
                         unset($arr['test_id']);
 
                         $answers->update($answer_id, $arr);
@@ -94,7 +78,7 @@ class Take_test extends Controller
             if (!empty($_GET['page'])) {
                 $page_number = "&page=" . $_GET['page'];
             }
-            $this->redirect('take_test/' . $id . $page_number);
+            $this->redirect('mark_test/' . $id . '/' . $user_id . $page_number);
         }
 
         $limit = 3;
@@ -108,27 +92,56 @@ class Take_test extends Controller
 
         $total_questions = is_array($all_questions) ? count($all_questions) : 0;
 
-        //if its a test submit
-        if (isset($_GET['submit'])) {
+        //if its a test un submit
+        if (isset($_GET['unsubmit'])) {
 
-            $query = "update answered_tests set submitted = 1,submitted_date = :sub_date where test_id = :test_id && user_id = :user_id limit 1";
+            $query = "update answered_tests set submitted = 0,submitted_date = :sub_date where test_id = :test_id && user_id = :user_id limit 1";
             $tests->query($query, [
                 'test_id' => $id,
-                'user_id' => Auth::getUser_id(),
-                'sub_date' => date("Y-m-d H:i:s"),
+                'user_id' => $user_id,
+                'sub_date' => '',
             ]);
         }
 
-        $data['answered_test_row']     = $tests->get_answered_test($id, Auth::getUser_id());
+        //if its set as marked
+        if (isset($_GET['set_marked']) && (get_mark_percentage($id, $user_id) >= 100)) {
 
+            $query = "update answered_tests set marked = 1,marked_by = :marked_by,marked_date = :mark_date, score = :score where test_id = :test_id && user_id = :user_id limit 1";
+            $tests->query($query, [
+                'test_id' => $id,
+                'user_id' => $user_id,
+                'marked_by' => Auth::getUser_id(),
+                'mark_date' => date("Y-m-d H:i:s"),
+                'score' => get_score_percentage($id, $user_id),
+            ]);
+
+            $this->redirect('mark_test/' . $id . '/' . $user_id);
+        }
+
+
+
+        $data['answered_test_row']     = $tests->get_answered_test($id, $user_id);
+
+        //set submitted variable
         $data['submitted'] = false;
         if (isset($data['answered_test_row']->submitted) && $data['answered_test_row']->submitted == 1) {
             $data['submitted'] = true;
         }
 
+        //set marked variable
+        $data['marked'] = false;
+        if (isset($data['answered_test_row']->marked) && $data['answered_test_row']->marked == 1) {
+            $data['marked'] = true;
+        }
+
+
+
         //get student information
-        $user = new User();
-        $data['student_row'] = $user->first('user_id', $data['answered_test_row']->user_id);
+        if ($data['answered_test_row']) {
+
+            $user = new User();
+            $data['student_row'] = $user->first('user_id', $data['answered_test_row']->user_id);
+        }
 
         $data['row']         = $row;
         $data['crumbs']     = $crumbs;
@@ -140,7 +153,8 @@ class Take_test extends Controller
         $data['errors']     = $errors;
         $data['pager']         = $pager;
         $data['saved_answers']         = $saved_answers;
+        $data['user_id']         = $user_id;
 
-        $this->view('take-test', $data);
+        $this->view('mark-test', $data);
     }
 }

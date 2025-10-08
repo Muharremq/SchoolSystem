@@ -40,51 +40,75 @@ class Profile extends Controller
             $data['student_classes'] = array();
             if ($data['stud_classes']) {
                 foreach ($data['stud_classes'] as $key => $arow) {
-                    // Fix: Check if class exists before adding to array
-                    $class_result = $class->first('class_id', $arow->class_id);
-                    if ($class_result) {
-                        $data['student_classes'][] = $class_result;
+                    $class_row = $class->first('class_id', $arow->class_id);
+                    if ($class_row) {
+                        $data['student_classes'][] = $class_row;
                     }
                 }
             }
-        } else if ($data['page_tab'] == 'tests' && $row) {
-            $class = new Classes_model();
+        } else
 
-            $disabled = "disabled = 0 &&";
-            $mytable = "class_students";
-            if ($row->rank == "lecturer") {
-                $mytable = "class_lecturers";
-                $disabled = "";
-            }
+		if ($data['page_tab'] == 'tests' && $row) {
+            if ($row->rank != 'student') {
 
-            $query = "select * from $mytable where user_id = :user_id && disabled = 0";
-            $data['stud_classes'] = $class->query($query, ['user_id' => $id]);
+                $class = new Classes_model();
 
-            $data['student_classes'] = array();
-            $class_ids = array();
+                $disabled = "disabled = 0 &&";
+                $mytable = "class_students";
+                if ($row->rank == "lecturer") {
+                    $mytable = "class_lecturers";
+                    $disabled = "";
+                }
 
-            if ($data['stud_classes']) {
-                foreach ($data['stud_classes'] as $key => $arow) {
-                    // Fix: Check if class exists before adding to array
-                    $class_result = $class->first('class_id', $arow->class_id);
-                    if ($class_result) {
-                        $data['student_classes'][] = $class_result;
-                        $class_ids[] = $class_result->class_id;
+                $query = "select * from $mytable where user_id = :user_id && disabled = 0";
+                $data['stud_classes'] = $class->query($query, ['user_id' => $id]);
+
+                $data['student_classes'] = array();
+                if ($data['stud_classes']) {
+                    foreach ($data['stud_classes'] as $key => $arow) {
+                        $class_row = $class->first('class_id', $arow->class_id);
+                        if ($class_row) {
+                            $data['student_classes'][] = $class_row;
+                        }
                     }
                 }
-            }
 
-            // Only query tests if there are valid classes
-            if (!empty($class_ids)) {
-                $id_str = "'" . implode("','", $class_ids) . "'";
-                $query = "select * from tests where $disabled class_id in ($id_str)";
+                //collect class id's
+                $class_ids = [];
+                foreach ($data['student_classes'] as $key => $class_row) {
+                    $class_ids[] = $class_row->class_id;
+                }
 
-                $tests_model = new Tests_model();
-                $tests = $tests_model->query($query);
+                if (!empty($class_ids)) {
+                    $id_str = "'" . implode("','", $class_ids) . "'";
+                    $query = "select * from tests where $disabled class_id in ($id_str)";
 
-                $data['test_rows'] = $tests;
+                    $tests_model = new Tests_model();
+                    $tests = $tests_model->query($query);
+
+                    $data['test_rows'] = $tests;
+                } else {
+                    $data['test_rows'] = array();
+                }
             } else {
-                $data['test_rows'] = array();
+
+                //get all submitted tests
+                $marked = array();
+                $tests = new Tests_model();
+
+                $query = "select * from answered_tests where user_id = :user_id && submitted = 1 && marked = 1";
+                $answered_tests = $tests->query($query, ['user_id' => $id]);
+
+                if (is_array($answered_tests)) {
+
+                    foreach ($answered_tests as $key => $value) {
+
+                        $test_details = $tests->first('test_id', $answered_tests[$key]->test_id);
+                        $answered_tests[$key]->test_details = $test_details;
+                    }
+                }
+
+                $data['test_rows'] = $answered_tests;
             }
         }
 
@@ -97,7 +121,6 @@ class Profile extends Controller
             $this->view('access-denied');
         }
     }
-
 
     function edit($id = '')
     {
@@ -121,13 +144,10 @@ class Profile extends Controller
             }
 
             if ($user->validate($_POST, $id)) {
-
-
                 //check for files
                 if ($myimage = upload_image($_FILES)) {
                     $_POST['image'] = $myimage;
                 }
-
 
                 if ($_POST['rank'] == 'super_admin' && $_SESSION['USER']->rank != 'super_admin') {
                     $_POST['rank'] = 'admin';

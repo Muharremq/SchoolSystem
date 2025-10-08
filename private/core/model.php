@@ -16,11 +16,26 @@ class Model extends Database
     }
 
 
-    public function where($column, $value, $orderby = 'desc')
+    protected function get_primary_key($table)
+    {
+
+        $query = "SHOW KEYS from $table WHERE Key_name = 'PRIMARY' ";
+        $db = new Database();
+        $data = $db->query($query);
+
+        if (!empty($data[0])) {
+            return $data[0]->Column_name;
+        }
+        return 'id';
+    }
+
+    public function where($column, $value, $orderby = 'desc', $limit = 10, $offset = 0)
     {
 
         $column = addslashes($column);
-        $query = "select * from $this->table where $column = :value order by id $orderby";
+        $primary_key = $this->get_primary_key($this->table);
+
+        $query = "select * from $this->table where $column = :value order by $primary_key $orderby limit $limit offset $offset";
         $data = $this->query($query, [
             'value' => $value
         ]);
@@ -41,7 +56,9 @@ class Model extends Database
     {
 
         $column = addslashes($column);
-        $query = "select * from $this->table where $column = :value order by id $orderby";
+        $primary_key = $this->get_primary_key($this->table);
+
+        $query = "select * from $this->table where $column = :value order by $primary_key $orderby";
         $data = $this->query($query, [
             'value' => $value
         ]);
@@ -61,10 +78,12 @@ class Model extends Database
         return $data;
     }
 
-    public function findAll($orderby = 'desc')
+    public function findAll($orderby = 'desc', $limit = 100, $offset = 0)
     {
 
-        $query = "select * from $this->table order by id $orderby";
+        $primary_key = $this->get_primary_key($this->table);
+
+        $query = "select * from $this->table order by $primary_key $orderby limit $limit offset $offset";
         $data = $this->query($query);
 
         //run functions after select
@@ -109,6 +128,7 @@ class Model extends Database
 
     public function update($id, $data)
     {
+
         //remove unwanted columns
         if (property_exists($this, 'allowedColumns')) {
             foreach ($data as $key => $column) {

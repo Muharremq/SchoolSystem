@@ -9,14 +9,17 @@ class Classes extends Controller
 
     public function index()
     {
+        // code...
         if (!Auth::logged_in()) {
             $this->redirect('login');
         }
 
         $classes = new Classes_model();
+
         $school_id = Auth::getSchool_id();
 
         if (Auth::access('admin')) {
+
             $query = "select * from classes where school_id = :school_id order by id desc";
             $arr['school_id'] = $school_id;
 
@@ -28,6 +31,7 @@ class Classes extends Controller
 
             $data = $classes->query($query, $arr);
         } else {
+
             $class = new Classes_model();
             $mytable = "class_students";
             if (Auth::getRank() == "lecturer") {
@@ -43,16 +47,23 @@ class Classes extends Controller
                 $arr['find'] = $find;
             }
 
-            $stud_classes = $class->query($query, $arr);
+            $arr['stud_classes'] = $class->query($query, $arr);
+
+            //get class ids from classes that dont already have members
+            $classes_i_own = $class->where('user_id', Auth::getUser_id());
+            if ($classes_i_own && $arr['stud_classes']) {
+                $arr['stud_classes'] = array_merge($classes_i_own, $arr['stud_classes']);
+            }
 
             $data = array();
-            if ($stud_classes) {
-                foreach ($stud_classes as $key => $arow) {
-                    $class_data = $class->first('class_id', $arow->class_id);
-                    // Only add if class exists
-                    if ($class_data) {
-                        $data[] = $class_data;
-                    }
+            if ($arr['stud_classes']) {
+
+                $all_classes = array_column($arr['stud_classes'], 'class_id');
+                $all_classes = array_unique($all_classes);
+
+                foreach ($all_classes as $class_id) {
+                    // code...
+                    $data[] = $class->first('class_id', $class_id);
                 }
             }
         }
@@ -62,10 +73,9 @@ class Classes extends Controller
 
         $this->view('classes', [
             'crumbs' => $crumbs,
-            'rows' => $data ?? [] // Ensure $data is always an array
+            'rows' => $data
         ]);
     }
-
 
     public function add()
     {
@@ -103,28 +113,34 @@ class Classes extends Controller
 
     public function edit($id = null)
     {
+        // code...
         if (!Auth::logged_in()) {
             $this->redirect('login');
         }
 
         $classes = new Classes_model();
-        $row = $classes->where('id', $id); // Get $row FIRST
 
         $errors = array();
         if (count($_POST) > 0 && Auth::access('lecturer') && Auth::i_own_content($row)) {
+
             if ($classes->validate($_POST)) {
+
                 $classes->update($id, $_POST);
                 $this->redirect('classes');
             } else {
+                //errors
                 $errors = $classes->errors;
             }
         }
+
+        $row = $classes->where('id', $id);
 
         $crumbs[] = ['Dashboard', ''];
         $crumbs[] = ['Classes', 'classes'];
         $crumbs[] = ['Edit', 'classes/edit'];
 
         if (Auth::access('lecturer') && Auth::i_own_content($row)) {
+
             $this->view('classes.edit', [
                 'row' => $row,
                 'errors' => $errors,
@@ -137,24 +153,30 @@ class Classes extends Controller
 
     public function delete($id = null)
     {
+        // code...
         if (!Auth::logged_in()) {
             $this->redirect('login');
         }
 
+
         $classes = new Classes_model();
-        $row = $classes->where('id', $id); // Get $row FIRST
 
         $errors = array();
+
         if (count($_POST) > 0 && Auth::access('lecturer') && Auth::i_own_content($row)) {
+
             $classes->delete($id);
             $this->redirect('classes');
         }
+
+        $row = $classes->where('id', $id);
 
         $crumbs[] = ['Dashboard', ''];
         $crumbs[] = ['Classes', 'classes'];
         $crumbs[] = ['Delete', 'classes/delete'];
 
         if (Auth::access('lecturer') && Auth::i_own_content($row)) {
+
             $this->view('classes.delete', [
                 'row' => $row,
                 'crumbs' => $crumbs,

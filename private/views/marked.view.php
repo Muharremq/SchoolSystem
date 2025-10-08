@@ -4,7 +4,7 @@
 <div class="container-fluid p-4 shadow mx-auto" style="max-width: 1000px;">
     <?php $this->view('includes/crumbs', ['crumbs' => $crumbs]) ?>
 
-    <h5>Tests</h5>
+    <h5>Marked Tests</h5>
     <nav class="navbar navbar-light bg-light">
         <form class="form-inline">
             <div class="input-group">
@@ -17,7 +17,7 @@
 
     </nav>
 
-    <?php include(views_path('tests')) ?>
+    <?php include(views_path('marked')) ?>
 
 </div>
 

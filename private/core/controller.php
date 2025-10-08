@@ -7,6 +7,11 @@
 class controller
 {
 
+    public function controller_name()
+    {
+        return get_class($this);
+    }
+
     public function view($view, $data = array())
     {
         extract($data);

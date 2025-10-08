@@ -15,7 +15,7 @@ class Questions_model extends Model
         'question_type',
         'correct_answer',
         'choices',
-        'image'
+        'image',
     ];
 
     protected $beforeInsert = [
@@ -38,7 +38,7 @@ class Questions_model extends Model
 
         //check for multiple choice answers
         $num = 0;
-        $letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+        $letters = ['A', 'B', 'C', 'D', 'F', 'G', 'H', 'I', 'J'];
         foreach ($DATA as $key => $value) {
             // code...
             if (strstr($key, 'choice')) {
@@ -49,13 +49,12 @@ class Questions_model extends Model
             }
         }
 
-
         if (isset($DATA['correct_answer'])) {
+
             if (empty($DATA['correct_answer'])) {
                 $this->errors['correct_answer'] = "Please add a valid answer";
             }
         }
-
 
         if (count($this->errors) == 0) {
             return true;
@@ -76,10 +75,12 @@ class Questions_model extends Model
     {
 
         $user = new User();
-        foreach ($data as $key => $row) {
-            // code...
-            $result = $user->where('user_id', $row->user_id);
-            $data[$key]->user = is_array($result) ? $result[0] : false;
+        if (isset($data[0]->user_id)) {
+            foreach ($data as $key => $row) {
+                // code...
+                $result = $user->where('user_id', $row->user_id);
+                $data[$key]->user = is_array($result) ? $result[0] : false;
+            }
         }
 
         return $data;
