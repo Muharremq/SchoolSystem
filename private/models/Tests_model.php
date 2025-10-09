@@ -72,8 +72,10 @@ class Tests_model extends Model
         $user = new User();
         foreach ($data as $key => $row) {
             // code...
-            $result = $user->where('user_id', $row->user_id);
-            $data[$key]->user = is_array($result) ? $result[0] : false;
+            if (!empty($row->user_id)) {
+                $result = $user->where('user_id', $row->user_id);
+                $data[$key]->user = is_array($result) ? $result[0] : false;
+            }
         }
 
         return $data;
@@ -114,65 +116,28 @@ class Tests_model extends Model
     public function get_to_mark_count()
     {
 
-
+        $test = new Tests_model();
         if (Auth::access('admin')) {
 
-            $query = "select * from tests where school_id = :school_id order by id desc";
+            $query = "select * from answered_tests where test_id in (select test_id from tests where school_id = :school_id) && submitted = 1 && marked = 0 && year(date) = :school_year";
             $arr['school_id'] = Auth::getSchool_id();
+            $arr['school_year'] = !empty($_SESSION['SCHOOL_YEAR']->year) ? $_SESSION['SCHOOL_YEAR']->year : date("Y", time());
 
-            if (isset($_GET['find'])) {
-                $find = '%' . $_GET['find'] . '%';
-                $query = "select * from tests where school_id = :school_id && (test like :find) order by id desc";
-                $arr['find'] = $find;
-            }
-
-            $data = $this->query($query, $arr);
+            $to_mark = $test->query($query, $arr);
         } else {
 
             $mytable = "class_lecturers";
-
-            $query = "select * from $mytable where user_id = :user_id && disabled = 0";
             $arr['user_id'] = Auth::getUser_id();
+            $arr['school_year'] = !empty($_SESSION['SCHOOL_YEAR']->year) ? $_SESSION['SCHOOL_YEAR']->year : date("Y", time());
 
-            if (isset($_GET['find'])) {
-                $find = '%' . $_GET['find'] . '%';
-                $query = "select tests.test, {$mytable}.* from $mytable join tests on tests.test_id = {$mytable}.test_id where {$mytable}.user_id = :user_id && {$mytable}.disabled = 0 && tests.test like :find ";
-                $arr['find'] = $find;
-            }
-
-            $arr['stud_classes'] = $this->query($query, $arr);
-
-            //read all tests from the selectd classes
-            $data = array();
-            if ($arr['stud_classes']) {
-                foreach ($arr['stud_classes'] as $key => $arow) {
-                    // code...
-                    $query = "select * from tests where class_id = :class_id";
-                    $a = $this->query($query, ['class_id' => $arow->class_id]);
-                    if (is_array($a)) {
-                        $data = array_merge($data, $a);
-                    }
-                }
-            }
+            $query = "select * from answered_tests where test_id in (select test_id from tests where class_id in (SELECT class_id FROM `class_lecturers` WHERE user_id = :user_id)) && submitted = 1 && marked = 0 && year(date) = :school_year";
+            $to_mark = $test->query($query, $arr);
         }
 
-        //get all submitted tests
-        $to_mark = array();
-        if (count($data) > 0) {
-            foreach ($data as $key => $arow) {
-                // code...
-                $query = "select * from answered_tests where test_id = :test_id && submitted = 1 && marked = 0 limit 1";
-                $a = $this->query($query, ['test_id' => $arow->test_id]);
-
-                if (is_array($a)) {
-                    $test_details = $this->first('test_id', $a[0]->test_id);
-                    $a[0]->test_details = $test_details;
-
-                    $to_mark = array_merge($to_mark, $a);
-                }
-            }
+        if ($to_mark) {
+            return count($to_mark);
         }
 
-        return count($to_mark);
+        return 0;
     }
 }

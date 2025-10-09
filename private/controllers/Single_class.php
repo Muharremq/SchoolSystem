@@ -85,24 +85,29 @@ class Single_class extends Controller
 
     public function lectureradd($id = '')
     {
-
         $errors = array();
         if (!Auth::logged_in()) {
             $this->redirect('login');
         }
 
+
         $classes = new Classes_model();
+
         $row = $classes->first('class_id', $id);
 
-        $crumbs[] = ['Dashboard', ''];
-        $crumbs[] = ['classes', 'classes'];
+
+        $crumbs[] = ['Dashboard', '/'];
+        $crumbs[] = ['Classes', 'single_class'];
 
         if ($row) {
-            $crumbs[] = [$row->class, ''];
+            $crumbs[] = [$row->class, 'class'];
         }
 
+
         $page_tab = 'lecturer-add';
+
         $lect = new Lecturers_model();
+
 
         $results = false;
 
@@ -110,65 +115,68 @@ class Single_class extends Controller
 
             if (isset($_POST['search'])) {
 
-                if (trim($_POST['name']) != "") {
 
+                if (!empty($_POST['name'])) {
                     //find lecturer
                     $user = new User();
                     $name = "%" . trim($_POST['name']) . "%";
-                    $query = "select * from users where (firstname like :fname || lastname like :lname) && rank = 'lecturer' limit 10";
-                    $results = $user->query($query, ['fname' => $name, 'lname' => $name,]);
+
+                    $query = "SELECT * FROM users WHERE (firstname LIKE :fname OR lastname LIKE :lname) && rank = 'lecturer' LIMIT 10";
+
+                    $results = $user->query($query, ['fname' => $name, 'lname' => $name]);
                 } else {
-                    $errors[] = "please type a name to find";
+                    $errors[] = " pleas type a name to search for ";
                 }
             } else
-			if (isset($_POST['selected'])) {
+                if (isset($_POST['selected'])) {
 
                 //add lecturer
-                $query = "select disabled,id from class_lecturers where user_id = :user_id && class_id = :class_id limit 1";
+                $query = "select id from class_lecturers where user_id = :user_id && class_id = :class_id && disabled = 0 limit 1";
 
-                if (!$check = $lect->query($query, [
+
+                if (!$lect->query($query, [
                     'user_id' => $_POST['selected'],
                     'class_id' => $id,
                 ])) {
 
                     $arr = array();
-                    $arr['user_id']     = $_POST['selected'];
-                    $arr['class_id']     = $id;
-                    $arr['disabled']     = 0;
-                    $arr['date']         = date("Y-m-d H:i:s");
+                    $arr['user_id'] = $_POST['selected'];
+                    $arr['class_id'] = $id;
+                    $arr['disabled'] = 0;
+                    $arr['date'] = date('Y-m-d H:i:s');
 
                     $lect->insert($arr);
 
                     $this->redirect('single_class/' . $id . '?tab=lecturers');
                 } else {
-
                     //check if user is active
                     if (isset($check[0]->disabled)) {
                         if ($check[0]->disabled) {
-
                             $arr = array();
-                            $arr['disabled']     = 0;
+                            $arr['disabled'] = 0;
+
                             $lect->update($check[0]->id, $arr);
 
                             $this->redirect('single_class/' . $id . '?tab=lecturers');
                         } else {
-
-                            $errors[] = "that lecturer already belongs to this class";
+                            $errors[] = " that lecturer is already belongs to that class";
                         }
                     } else {
-                        $errors[] = "that lecturer already belongs to this class";
+                        $errors[] = " that lecturer is already belongs to that class";
                     }
                 }
             }
         }
 
-        $data['row']         = $row;
-        $data['crumbs']     = $crumbs;
-        $data['page_tab']     = $page_tab;
-        $data['results']     = $results;
-        $data['errors']     = $errors;
 
-        $this->view('single-class', $data);
+        $data['row'] = $row;
+        $data['crumbs'] = $crumbs;
+        $data['page_tab'] = $page_tab;
+        $data['results'] = $results;
+        $data['errors'] = $errors;
+
+
+        $this->view('single_class', $data);
     }
 
 
@@ -442,11 +450,11 @@ class Single_class extends Controller
 
     public function testadd($id = '')
     {
-
         $errors = array();
         if (!Auth::logged_in()) {
             $this->redirect('login');
         }
+
 
         $classes = new Classes_model();
         $row = $classes->first('class_id', $id);
@@ -467,12 +475,13 @@ class Single_class extends Controller
 
             if (isset($_POST['test'])) {
 
+
                 $arr = array();
-                $arr['test']     = $_POST['test'];
-                $arr['description']     = $_POST['description'];
-                $arr['class_id']     = $id;
-                $arr['disabled']     = 1;
-                $arr['date']         = date("Y-m-d H:i:s");
+                $arr['test'] = $_POST['test'];
+                $arr['description'] = $_POST['description'];
+                $arr['class_id'] = $id;
+                $arr['disabled'] = 0;
+                $arr['date'] = date('Y-m-d H:i:s');
 
                 $test_class->insert($arr);
 
@@ -480,13 +489,15 @@ class Single_class extends Controller
             }
         }
 
-        $data['row']         = $row;
-        $data['crumbs']     = $crumbs;
-        $data['page_tab']     = $page_tab;
-        $data['results']     = $results;
-        $data['errors']     = $errors;
 
-        $this->view('single-class', $data);
+        $data['row'] = $row;
+        $data['crumbs'] = $crumbs;
+        $data['page_tab'] = $page_tab;
+        $data['results'] = $results;
+        $data['errors'] = $errors;
+
+
+        $this->view('single_class', $data);
     }
 
 
@@ -494,7 +505,6 @@ class Single_class extends Controller
 
     public function testedit($id = '', $test_id = '')
     {
-
         $errors = array();
         if (!Auth::logged_in()) {
             $this->redirect('login');
@@ -503,7 +513,10 @@ class Single_class extends Controller
         $classes = new Classes_model();
         $tests = new Tests_model();
 
+        // Get the class data
         $row = $classes->first('class_id', $id);
+
+        // Get the specific test data using test_id
         $test_row = $tests->first('test_id', $test_id);
 
         $crumbs[] = ['Dashboard', ''];
@@ -516,36 +529,39 @@ class Single_class extends Controller
         $page_tab = 'test-edit';
         $test_class = new Tests_model();
 
+
         $results = false;
 
         if (count($_POST) > 0) {
 
-            if (isset($_POST['test'])) {
 
+            if (isset($_POST['test'])) {
                 $arr = array();
                 $arr['test']     = $_POST['test'];
                 $arr['description']     = $_POST['description'];
                 $arr['disabled']     = $_POST['disabled'];
 
+                // Update with WHERE clause for specific test
                 $test_class->update($test_row->id, $arr);
 
-                $this->redirect('single_class/testedit/' . $id . '/' . $test_id . '?tab=test-edit');
+                $this->redirect('single_class/' . $id . '?tab=tests');
             }
         }
 
-        $data['row']         = $row;
-        $data['test_row']         = $test_row;
-        $data['crumbs']     = $crumbs;
-        $data['page_tab']     = $page_tab;
-        $data['results']     = $results;
-        $data['errors']     = $errors;
+        $data['row'] = $row;
+        $data['test_row'] = $test_row;  // This should be the test data, not class data
+        $data['crumbs'] = $crumbs;
+        $data['page_tab'] = $page_tab;
+        $data['results'] = $results;
+        $data['errors'] = $errors;
 
-        $this->view('single-class', $data);
+        $this->view('single_class', $data);
     }
+
+
 
     public function testdelete($id = '', $test_id = '')
     {
-
         $errors = array();
         if (!Auth::logged_in()) {
             $this->redirect('login');
@@ -554,7 +570,10 @@ class Single_class extends Controller
         $classes = new Classes_model();
         $tests = new Tests_model();
 
+        // Get the class data
         $row = $classes->first('class_id', $id);
+
+        // Get the specific test data using test_id
         $test_row = $tests->first('test_id', $test_id);
 
         $crumbs[] = ['Dashboard', ''];
@@ -567,25 +586,28 @@ class Single_class extends Controller
         $page_tab = 'test-delete';
         $test_class = new Tests_model();
 
+
         $results = false;
 
         if (count($_POST) > 0) {
 
+
             if (isset($_POST['test'])) {
 
+                // Update with WHERE clause for specific test
                 $test_class->delete($test_row->id);
 
                 $this->redirect('single_class/' . $id . '?tab=tests');
             }
         }
 
-        $data['row']         = $row;
-        $data['test_row']     = $test_row;
-        $data['crumbs']     = $crumbs;
-        $data['page_tab']     = $page_tab;
-        $data['results']     = $results;
-        $data['errors']     = $errors;
+        $data['row'] = $row;
+        $data['test_row'] = $test_row;  // This should be the test data, not class data
+        $data['crumbs'] = $crumbs;
+        $data['page_tab'] = $page_tab;
+        $data['results'] = $results;
+        $data['errors'] = $errors;
 
-        $this->view('single-class', $data);
+        $this->view('single_class', $data);
     }
 }

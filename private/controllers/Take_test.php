@@ -128,7 +128,7 @@ class Take_test extends Controller
 
         //get student information
         $user = new User();
-        $data['student_row'] = $user->first('user_id', $data['answered_test_row']->user_id);
+        $data['student_row'] = $user->first('user_id', Auth::getUser_id());
 
         $data['row']         = $row;
         $data['crumbs']     = $crumbs;

@@ -24,19 +24,32 @@ class Single_test extends Controller
             $crumbs[] = [$row->test, ''];
         }
 
-        //disable
+        //disable/enable toggle
         if (isset($_GET['disable'])) {
 
             if ($row->disabled) {
-                $disable = 0;
+                $disable = 0; // Enable the test
             } else {
-                $disable = 1;
+                $disable = 1; // Disable the test
             }
-            $query = "update tests set disabled = $disable where id = :id limit 1";
-            $tests->query($query, ['id' => $row->id]);
+            $query = "update tests set disabled = :disable where id = :id limit 1";
+            $tests->query($query, ['id' => $row->id, 'disable' => $disable]);
+
+            // Redirect to refresh the page and show updated status
+            $this->redirect('single_test/' . $id);
         }
 
         $page_tab = 'view';
+        $student_scores = false;
+        $show_add_menu = false; // New variable to control add menu visibility
+
+        if (isset($_GET['tab']) && $_GET['tab'] == "scores") {
+            $page_tab = 'scores';
+
+            $answered_test = new Answered_test();
+            $student_scores = $answered_test->query("select * from answered_tests where test_id = :test_id && submitted = 1 && marked = 1 order by score desc", ['test_id' => $id]);
+        }
+
 
         $limit = 10;
         $pager = new Pager($limit);
@@ -54,6 +67,10 @@ class Single_test extends Controller
 
         $total_questions = count($questions);
 
+        // Auto-expand add menu if no questions exist and we're on the view tab
+        if ($total_questions == 0 && $page_tab == 'view') {
+            $show_add_menu = true;
+        }
 
         $data['row'] = $row;
         $data['crumbs'] = $crumbs;
@@ -63,6 +80,8 @@ class Single_test extends Controller
         $data['results'] = $results;
         $data['errors'] = $errors;
         $data['pager'] = $pager;
+        $data['student_scores'] = $student_scores;
+        $data['show_add_menu'] = $show_add_menu; // Pass to view
 
 
         $this->view('single_test', $data);
